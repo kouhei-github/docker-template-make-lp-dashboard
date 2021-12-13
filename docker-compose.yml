@@ -49,16 +49,16 @@ services:
       - db
 
   db:
-    container_name: db
+    container_name: lp_dashboard_db
     image: mysql:8
     volumes:
       - ./db-store:/var/lib/mysql
-      - ./.docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
       - ./logs:/var/log/mysql
     ports:
       - "4306:3306"
     environment:
-      - MYSQL_DATABASE=dev
-      - MYSQL_USER=dev
-      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=lp_dashboard
+      - MYSQL_USER=kouhei
+      - MYSQL_PASSWORD=kamv890v
       - MYSQL_ROOT_PASSWORD=password

@@ -104,19 +104,66 @@ $ docker-compose exec db bash
 $ mysql -u root -p -h 127.0.0.1
 
 # この後パスワードを入力して完了
+> password
+ 
+> CREATE DATABASE DB名 DEFAULT CHARACTER SET utf8mb4;
+> CREATE USER 'ユーザー名'@'localhost'  IDENTIFIED WITH mysql_native_password BY 'パスワード';
+> GRANT ALL PRIVILEGES ON DB名.* TO 'ユーザー名'@'localhost';
+
+>create user 'ユーザー名'@'%' identified by '好きなパスワード';
+create user 'kouhei'@'%' identified by 'kamv890v';
+
+> CREATE DATABASE DB名 DEFAULT CHARACTER SET utf8mb4;
+CREATE DATABASE lp_dashboard DEFAULT CHARACTER SET utf8mb4;
+
+> use DB名;use lp_dashboard;
+use lp_dashboard;
+
+>GRANT ALL PRIVILEGES ON DB名.* TO 'ユーザー名'@'localhost';
+GRANT ALL PRIVILEGES ON lp_dashboard.* TO 'kouhei'@'localhost';
+GRANT ALL PRIVILEGES ON lp_dashboard.* TO 'kouhei'@'%';
+
+> FLUSH PRIVILEGES;
+
+>SELECT user, host, db FROM mysql.db;
+# kouhei, %, lp_dashboard ならOK
++---------------+-----------+--------------------+
+| user          | host      | db                 |
++---------------+-----------+--------------------+
+| kouhei        | %         | lp_dashboard       |
+| mysql.session | localhost | performance_schema |
+| mysql.sys     | localhost | sys                |
++---------------+-----------+--------------------+
+
 ```
+[DockerのMySQL接続で「SQLSTATE[HY000] [1045] Access denied for user」が出たときの対処法](https://qiita.com/akki-memo/items/357c1547a465af1c79d6)
 
 ### 6. Laravel 側の設定
 
 1. .env ファイルを docker-compose の mysql の内容で書き換える
 
-```phpt
+```.env
 DB_CONNECTION=mysql
 DB_HOST=db # コンテナの名前
 DB_PORT=3306
 DB_DATABASE=dev
 DB_USERNAME=dev
 DB_PASSWORD=password
+```
+
+2. コンテナを再起動させて設定したDBを認識させる
+```bash
+# volumeのキャッシュを削除
+$ docker-compose down --volumes
+# 起動
+$ docker-compose up -d
+# Laravel(api)コンテナの中に入る
+$ docker-compose exec api ash
+# キャッシュをクリア
+$ php artisan config:cache
+# migrate実行
+$ php artisan migrate
+
 ```
 
 2. migrate の実行
@@ -156,6 +203,8 @@ Route::get('api/', function () {
 $ docker build --no-cache .Dockerfileがあるパス
 # (例)
 $ docker build --no-cache ./.docker/nginx
+# Volumeのキャッシュも削除
+$ docker-compose down --volumes
 
 # この後パスワードを入力して完了
 ```
@@ -167,3 +216,6 @@ $ docker build --no-cache ./.docker/nginx
 [Docker コンテナの作成、起動〜停止まで](https://qiita.com/kooohei/items/0e788a2ce8c30f9dba53)
 
 [docker-compose を利用して同一リポジトリで Nuxt(web) + Laravel(API)な開発環境を準備する](https://qiita.com/nagi125/items/09ddbbfa923c0999494e)
+
+[DockerのMySQL接続で「SQLSTATE[HY000] [1045] Access denied for user」が出たときの対処法](https://qiita.com/akki-memo/items/357c1547a465af1c79d6)
+
